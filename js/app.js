@@ -5,10 +5,10 @@ let index = 0;
 let filter;
 let idTabs = [];
 let selectedItems = {
-    searchInput : "",
-    ingredientTags : [],
-    applianceTags : [],
-    ustensilsTags : []
+    searchInput: "",
+    ingredientTags: [],
+    applianceTags: [],
+    ustensilsTags: []
 };
 
 async function init() {
@@ -313,15 +313,14 @@ function triBarreRecherche() {
     }
 }
 
+//j'ai la recherche fusionnée sur la même fonction, je supprime le input barre de la fonction et en fait une autre ?
 
 
-
-//ê = e, ç = c
+//ê = e, ç = c, normalizeText à modifier, meme glacon ne va pas dans la barre de recherche ca affiche 4 resultats
 //width height du dropdown si y a qu'un element ou peu, le réduire
 
 //pourquoi ca ne supprime pas le lien avec la ligne 482 ?
-
-
+//écrire  "Aucune recette ne correspond à votre critère… vous pouvez chercher « tarte aux pommes », « poisson », etc."
 
 
 
@@ -343,7 +342,7 @@ function globalSearch() {
         selectedItems.applianceTags.forEach(applianceTag => {
             if (selectedItems.applianceTags.length > 0 && !normalizeText(recipe.appliance).includes(normalizeText(applianceTag))) {
                 isMatch = false;
-            } 
+            }
         })
 
 
@@ -396,12 +395,12 @@ function deleteElement() {
             let clickedItem = event.currentTarget.closest("li").textContent;
 
             for (let i in selectedItems) {
-              if (Array.isArray(selectedItems[i])) {
-                let index = selectedItems[i].indexOf(clickedItem);
-                if (index !== -1) {
-                  selectedItems[i].splice(index, 1);
+                if (Array.isArray(selectedItems[i])) {
+                    let index = selectedItems[i].indexOf(clickedItem);
+                    if (index !== -1) {
+                        selectedItems[i].splice(index, 1);
+                    }
                 }
-              }
             }
             globalSearch();
         });
@@ -410,13 +409,11 @@ function deleteElement() {
 
 //rotate le svg
 function svgRotate(event) {
-
     if (event.currentTarget.nextElementSibling.style.transform === "rotate(0turn)") {
         event.currentTarget.nextElementSibling.style.transform = "rotate(0.5turn)";
     } else {
         event.currentTarget.nextElementSibling.style.transform = "rotate(0turn)";
     }
-
 }
 
 //applatit le texte

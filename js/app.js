@@ -3,6 +3,7 @@ import { recipes } from "./recettes.js";
 let dropdownDiv = document.getElementsByClassName("dropdown-content");
 let index = 0;
 let filter;
+let idTabs = [];
 let selectedItems = {
     searchInput : "",
     ingredientTags : [],
@@ -17,6 +18,7 @@ async function init() {
     dropdown();
     eachRecipe();
     triBarreRecherche();
+    window.addEventListener("load", resetSearchInput);
 }
 init();
 
@@ -73,7 +75,7 @@ function getIngredients() {
             //deleteElement sinon cross ne marche pas
             deleteElement(event);
             //permet de trier la recette selon le selectionné
-            searchSelectedItem();
+            globalSearch();
         })
     })
 }
@@ -128,7 +130,7 @@ function getAppareils() {
             //deleteElement sinon cross ne marche pas
             deleteElement(event);
             //permet de trier la recette selon le selectionné
-            searchSelectedItem();
+            globalSearch();
         })
     })
 }
@@ -185,7 +187,7 @@ function getUstensiles() {
             //deleteElement sinon cross ne marche pas
             deleteElement(event);
             //permet de trier la recette selon le selectionné
-            searchSelectedItem();
+            globalSearch();
         })
     })
 }
@@ -193,7 +195,6 @@ function getUstensiles() {
 //affiche le dropdown par rapport au texte tapé dans la recherche des dropdown
 function dropdown() {
     const searchInputs = [...document.querySelectorAll(".search-input")];
-    window.addEventListener("load", resetSearchInput);
 
     searchInputs.forEach((searchInput) => {
         searchInput.addEventListener("input", searchInputDropdown);
@@ -296,81 +297,38 @@ function eachRecipe() {
 function triBarreRecherche() {
     const searchInput = document.getElementById("searchBarDiv_bar");
     searchInput.addEventListener("input", searchInputFunction);
-}
 
+    //cherche par rapport à la barre de recherche
+    function searchInputFunction(event) {
 
+        filter = normalizeText(event.currentTarget.value);
 
-
-
-//certains bug sur les appareils.. la boucle d'analyse est pas bonne dessus, on peut les cumuler ca se met pas à jour
-
-//faire apparaitre dropdown au clic quand on vide champ de recherche
-
-//faut appuyer 2x sur la barre suppr pour reset le champ de recherche
-// if input "" est vide then searchSelectedItem() ?
-
-
-
-//cherche par rapport à la barre de recherche
-function searchInputFunction(event) {
-    filter = normalizeText(event.currentTarget.value);
-    selectedItems.searchInput = filter;
-
-    if (filter.length >= 3) {
-        
-        let idTabs = [];
-
-        recipes.forEach(function (recipe) {
-            let isMatch = true;
-            //logique de recherche dans les ingrédients
-            selectedItems.ingredientTags.forEach(tag => {
-                if (!recipe.ingredients.some(ingredient => normalizeText(ingredient.ingredient).includes(normalizeText(tag)))) {
-                    isMatch = false;
-                }
-            })
-
-            //logique de recherche dans les appareils
-            if (selectedItems.applianceTags.length > 0 && !normalizeText(recipe.appliance).includes(normalizeText(selectedItems.applianceTags[0]))) {
-                isMatch = false;
-            } 
-
-            //logique de recherche dans les ustensiles
-            selectedItems.ustensilsTags.forEach(tag => {
-                if (!recipe.ustensils.some(ustensil => normalizeText(ustensil).includes(normalizeText(tag)))) {
-                    isMatch = false;
-                }
-            })
-
-            //logique de recherche dans le champ de recherche
-            if (selectedItems.searchInput !== "" && !(
-                normalizeText(recipe.name).includes(normalizeText(selectedItems.searchInput))
-                || recipe.ingredients.some(ingredient => normalizeText(ingredient.ingredient).includes(normalizeText(selectedItems.searchInput)))
-                || normalizeText(recipe.appliance).includes(normalizeText(selectedItems.searchInput))
-                || recipe.ustensils.some(ustensil => normalizeText(ustensil).includes(normalizeText(selectedItems.searchInput)))
-            )) {
-                isMatch = false;
-            }
-
-            //si match, ajoute au tableau
-            if (isMatch) {
-                idTabs.push(recipe.id);
-            }
-        });
-
-        const allSelectRecipes = document.querySelectorAll(".recipeUnity");
-
-        allSelectRecipes.forEach(recipe => {
-            recipe.style.display = idTabs.includes(parseInt(recipe.id)) ? "block" : "none";
-        });
-
-    } else if(filter.length <= 3) {
-        supprClavierFunc();
+        if (filter.length >= 3) {
+            selectedItems.searchInput = filter;
+            globalSearch();
+        } else {
+            selectedItems.searchInput = "";
+            globalSearch();
+        }
     }
 }
 
-//cherche par rapport aux selected
-function searchSelectedItem() {
-    let idTabs = [];
+
+
+
+//ê = e, ç = c
+//width height du dropdown si y a qu'un element ou peu, le réduire
+
+//pourquoi ca ne supprime pas le lien avec la ligne 482 ?
+
+
+
+
+
+//cherche par rapport à la var selectedItems
+function globalSearch() {
+    idTabs = [];
+    const allSelectRecipes = document.querySelectorAll(".recipeUnity");
 
     recipes.forEach(function (recipe) {
         let isMatch = true;
@@ -382,14 +340,12 @@ function searchSelectedItem() {
         })
 
         //logique de recherche dans les appareils
-        if (selectedItems.applianceTags.length > 0 && !normalizeText(recipe.appliance).includes(normalizeText(selectedItems.applianceTags[0]))) {
-            isMatch = false;
-        } 
-        // else if (selectedItems.applianceTags.length > 1) {
-        //     allSelectRecipes.forEach(selectedRecipe => {
-        //         selectedRecipe.style.display = "none";
-        //     })
-        // }
+        selectedItems.applianceTags.forEach(applianceTag => {
+            if (selectedItems.applianceTags.length > 0 && !normalizeText(recipe.appliance).includes(normalizeText(applianceTag))) {
+                isMatch = false;
+            } 
+        })
+
 
         //logique de recherche dans les ustensiles
         selectedItems.ustensilsTags.forEach(tag => {
@@ -402,8 +358,9 @@ function searchSelectedItem() {
         if (selectedItems.searchInput !== "" && !(
             normalizeText(recipe.name).includes(normalizeText(selectedItems.searchInput))
             || recipe.ingredients.some(ingredient => normalizeText(ingredient.ingredient).includes(normalizeText(selectedItems.searchInput)))
-            || normalizeText(recipe.appliance).includes(normalizeText(selectedItems.searchInput))
-            || recipe.ustensils.some(ustensil => normalizeText(ustensil).includes(normalizeText(selectedItems.searchInput)))
+            || normalizeText(recipe.name).includes(normalizeText(selectedItems.searchInput))
+            || recipe.description.split(" ").some(ustensil => normalizeText(ustensil).includes(normalizeText(selectedItems.searchInput)))
+            //some = pour array
         )) {
             isMatch = false;
         }
@@ -414,10 +371,14 @@ function searchSelectedItem() {
         }
     });
 
-    const allSelectRecipes = document.querySelectorAll(".recipeUnity");
     allSelectRecipes.forEach(recipe => {
         recipe.style.display = idTabs.includes(parseInt(recipe.id)) ? "block" : "none";
     });
+
+    updateDropdownIngredients();
+    updateDropdownAppareils();
+    updateDropdownUstensiles();
+
 }
 
 //au clic de la cross ca rajoute le a dans le dropdown concerné
@@ -429,7 +390,8 @@ function deleteElement() {
             event.currentTarget.closest("li").style.display = "none";
             const index = crossClose.getAttribute('index');
             const target = document.querySelector(`.item-dropdown[index="${index}"]`);
-            target.style.display = 'block';
+            event.currentTarget.style.display = 'block';
+            //ici j'ai modif target par event.currentTarget si jamais faut reset
 
             let clickedItem = event.currentTarget.closest("li").textContent;
 
@@ -441,20 +403,9 @@ function deleteElement() {
                 }
               }
             }
-            searchSelectedItem();
+            globalSearch();
         });
     });
-}
-
-//fonction pour actualiser en supprimant caractère de la barre
-function supprClavierFunc() {
-    const searchInputBar = document.getElementById("searchBarDiv_bar");
-
-    searchInputBar.addEventListener("keydown", (event) => {
-        if(event.keyCode === 8) {
-            searchSelectedItem()
-        }
-    })
 }
 
 //rotate le svg
@@ -478,9 +429,10 @@ function resetSearchInput() {
     const searchInputs = [...document.querySelectorAll(".search-input")];
     const searchInputBar = document.getElementById("searchBarDiv_bar");
 
+    searchInputBar.value = "";
     searchInputs.forEach((searchInput) => {
         searchInput.value = "";
-        searchInputBar.value = "";
+
     });
 }
 
@@ -490,6 +442,199 @@ function resetSearchInputNoBar() {
 
     searchInputs.forEach((searchInput) => {
         searchInput.value = "";
+        searchInput.dispatchEvent(new Event("input"));
     });
 }
 
+//met à jour le dropDown ingrédients
+function updateDropdownIngredients() {
+    let recipesStillHere = [];
+    recipes.forEach(recipe => {
+        if (idTabs.includes(recipe.id)) {
+            recipesStillHere.push(recipe)
+        }
+    })
+
+    let ingredientsArrays = recipesStillHere.reduce((accumulator, recipe) => {
+        recipe.ingredients.forEach(ingredient => {
+            ingredient.ingredient = ingredient.ingredient.toLowerCase();
+            if (!accumulator.includes(ingredient.ingredient)) {
+                accumulator.push(ingredient.ingredient);
+            }
+        });
+        return accumulator;
+    }, []);
+
+    dropdownDiv[0].innerHTML = "";
+
+    ingredientsArrays.forEach(ingredientsArray => {
+        let link = document.createElement("a");
+
+        link.setAttribute("href", "#");
+        link.setAttribute("class", "ingredient");
+        link.classList.add("item-dropdown");
+        link.textContent = ingredientsArray;
+        link.setAttribute("index", index);
+        index++;
+        dropdownDiv[0].appendChild(link);
+
+        link.addEventListener("click", (event) => {
+            resetSearchInputNoBar();
+            event.preventDefault();
+            selectedItems.ingredientTags.push(event.target.textContent);
+
+            event.currentTarget.style.display = "none";
+            let getIndex = event.currentTarget.getAttribute("index");
+
+            const selectedIngredient = event.target.textContent;
+            const selectedListItem = document.createElement("li");
+            selectedListItem.setAttribute("class", "selected");
+
+            const selectedListItemText = document.createElement("p");
+            selectedListItemText.setAttribute("class", "textEmpty");
+            selectedListItemText.textContent = selectedIngredient;
+
+            const selectedListItemImage = document.createElement("img");
+            selectedListItemImage.setAttribute("src", "medias/Checked.png");
+            selectedListItemImage.setAttribute("class", "checked");
+            selectedListItemImage.setAttribute("alt", "checked");
+            selectedListItemImage.setAttribute("index", getIndex);
+
+            selectedListItem.appendChild(selectedListItemText);
+            selectedListItem.appendChild(selectedListItemImage);
+            document.getElementById("selectedRecipeItem").appendChild(selectedListItem);
+            //deleteElement sinon cross ne marche pas
+            deleteElement(event);
+            //permet de trier la recette selon le selectionné
+            globalSearch();
+        })
+    })
+}
+
+//met à jour le dropDown appareils
+function updateDropdownAppareils() {
+    let recipesStillHere = [];
+    recipes.forEach(recipe => {
+        if (idTabs.includes(recipe.id)) {
+            recipesStillHere.push(recipe)
+        }
+    })
+
+    let appareilsArrays = recipesStillHere.reduce((accumulator, recipe) => {
+        recipe.appliance = recipe.appliance.toLowerCase();
+        if (recipe.appliance && !accumulator.includes(recipe.appliance)) {
+            accumulator.push(recipe.appliance);
+        }
+        return accumulator;
+    }, []);
+
+    dropdownDiv[1].innerHTML = "";
+
+    appareilsArrays.forEach(appareilsArray => {
+        let link = document.createElement("a");
+        link.setAttribute("href", "#");
+        link.setAttribute("class", "appareil");
+        link.classList.add("item-dropdown");
+        link.textContent = appareilsArray;
+        link.setAttribute("index", index);
+        index++;
+        dropdownDiv[1].appendChild(link);
+
+        link.addEventListener("click", (event) => {
+            resetSearchInputNoBar();
+            event.preventDefault();
+            event.currentTarget.style.display = "none";
+            let getIndex = event.currentTarget.getAttribute("index");
+            selectedItems.applianceTags.push(event.target.textContent);
+
+
+            const selectedAppareils = event.target.textContent;
+            const selectedListItem = document.createElement("li");
+            selectedListItem.setAttribute("class", "selected_2");
+            selectedListItem.classList.add("selected");
+
+            const selectedListItemText = document.createElement("p");
+            selectedListItemText.setAttribute("class", "textEmpty");
+            selectedListItemText.textContent = selectedAppareils;
+
+            const selectedListItemImage = document.createElement("img");
+            selectedListItemImage.setAttribute("src", "medias/Checked.png");
+            selectedListItemImage.setAttribute("class", "checked");
+            selectedListItemImage.setAttribute("alt", "checked");
+            selectedListItemImage.setAttribute("index", getIndex);
+
+            selectedListItem.appendChild(selectedListItemText);
+            selectedListItem.appendChild(selectedListItemImage);
+            document.getElementById("selectedRecipeItem").appendChild(selectedListItem);
+            //deleteElement sinon cross ne marche pas
+            deleteElement(event);
+            //permet de trier la recette selon le selectionné
+            globalSearch();
+        })
+    })
+}
+
+//met à jour le dropDown ustensiles
+function updateDropdownUstensiles() {
+    let recipesStillHere = [];
+    recipes.forEach(recipe => {
+        if (idTabs.includes(recipe.id)) {
+            recipesStillHere.push(recipe)
+        }
+    })
+
+    let ustensilsArrays = recipesStillHere.reduce((accumulator, recipe) => {
+        recipe.ustensils.forEach(ustensil => {
+            ustensil = ustensil.toLowerCase();
+            if (!accumulator.includes(ustensil)) {
+                accumulator.push(ustensil);
+            }
+        });
+        return accumulator;
+    }, []);
+
+    dropdownDiv[2].innerHTML = "";
+
+    ustensilsArrays.forEach(ustensilesArray => {
+        let link = document.createElement("a");
+        link.setAttribute("href", "#");
+        link.setAttribute("class", "ustensile");
+        link.classList.add("item-dropdown");
+        link.textContent = ustensilesArray;
+        link.setAttribute("index", index);
+        index++;
+        dropdownDiv[2].appendChild(link);
+
+        link.addEventListener("click", (event) => {
+            resetSearchInputNoBar();
+            event.preventDefault();
+            event.currentTarget.style.display = "none";
+            let getIndex = event.currentTarget.getAttribute("index");
+            selectedItems.ustensilsTags.push(event.target.textContent);
+
+
+            const selectedUstensils = event.target.textContent;
+            const selectedListItem = document.createElement("li");
+            selectedListItem.setAttribute("class", "selected_3");
+            selectedListItem.classList.add("selected");
+
+            const selectedListItemText = document.createElement("p");
+            selectedListItemText.setAttribute("class", "textEmpty");
+            selectedListItemText.textContent = selectedUstensils;
+
+            const selectedListItemImage = document.createElement("img");
+            selectedListItemImage.setAttribute("src", "medias/Checked.png");
+            selectedListItemImage.setAttribute("class", "checked");
+            selectedListItemImage.setAttribute("alt", "checked");
+            selectedListItemImage.setAttribute("index", getIndex);
+
+            selectedListItem.appendChild(selectedListItemText);
+            selectedListItem.appendChild(selectedListItemImage);
+            document.getElementById("selectedRecipeItem").appendChild(selectedListItem);
+            //deleteElement sinon cross ne marche pas
+            deleteElement(event);
+            //permet de trier la recette selon le selectionné
+            globalSearch();
+        })
+    })
+}

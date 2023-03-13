@@ -314,7 +314,7 @@ function triBarreRecherche() {
 }
 
 //j'ai la recherche fusionnée sur la même fonction, je supprime le input barre de la fonction et en fait une autre ?
-
+lol
 
 //ê = e, ç = c, normalizeText à modifier, meme glacon ne va pas dans la barre de recherche ca affiche 4 resultats
 //width height du dropdown si y a qu'un element ou peu, le réduire

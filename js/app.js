@@ -359,14 +359,25 @@ function globalSearch() {
         })
 
         //logique de recherche dans le champ de recherche
-        if (selectedItems.searchInput !== "" && !(
-            normalizeText(recipe.name).includes(normalizeText(selectedItems.searchInput))
-            || recipe.ingredients.some(ingredient => normalizeText(ingredient.ingredient).includes(normalizeText(selectedItems.searchInput)))
-            || normalizeText(recipe.name).includes(normalizeText(selectedItems.searchInput))
-            || recipe.description.split(" ").some(ustensil => normalizeText(ustensil).includes(normalizeText(selectedItems.searchInput)))
-            //some = pour array
-        )) {
+        if (selectedItems.searchInput !== "") {
             isMatch = false;
+            const searchInput = normalizeText(selectedItems.searchInput);
+            const recipeName = normalizeText(recipe.name);
+            const recipeDescription = normalizeText(recipe.description);
+          
+            for (let i = 0; i < recipe.ingredients.length; i++) {
+              const ingredientName = normalizeText(recipe.ingredients[i].ingredient);
+          
+              if (recipeName.includes(searchInput) ||
+                  ingredientName.includes(searchInput) ||
+                  recipeDescription.split(" ").some(word => normalizeText(word).includes(searchInput))) {
+                isMatch = true;
+              }
+            }
+          
+            if (!isMatch) {
+              isMatch = false;
+            }
         }
 
         //si match, ajoute au tableau
@@ -641,4 +652,4 @@ function updateDropdownUstensiles() {
             globalSearch();
         })
     })
-}
+} 

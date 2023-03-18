@@ -117,7 +117,7 @@ body {
     height: 50px;
     font-size: 14px;
     background-color: white;
-    border-radius: 4px;
+
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     margin-right: 50px;
   }
@@ -149,19 +149,16 @@ body {
 }
 
 .ingredient {
-    width: 50px;
     color: white;
     outline: none;
 }
 
 .appareil {
-    width: 50px;
     color: white;
     outline: none;
 }
 
 .ustensile {
-    width: 50px;
     color: white;
     outline: none;
 }
@@ -170,34 +167,30 @@ body {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-evenly;
-    height: 300px;
-    width: 320px;
+
+    max-height: 300px;
+    width: 319px;
+    left: -0.9px;
     border-radius: 0 0 10px 10px;
     font-size: 14px;
 }
 
-.dropdown:hover .color-second {
-    height: 150px;
-}
-
-.dropdown:hover .color-third {
-    height: 320px;
-}
-
 .dropdown-content a {
-    padding: 12px 16px;
+    padding: 6px 0;
     text-decoration: none;
-    display: block;
-    width: 50px;
-    height: 50px;
+    width: 85px;
+    height: 40px;
+    display: flex; /* centrer verticalement le texte */
+    align-items: center; /* centrer verticalement les éléments a dans leur conteneur */
 }
 
 .color-second a {
-    padding: 12px 16px;
+    padding: 6px 0;
     text-decoration: none;
-    display: block;
-    width: 50px;
-    height: 50px;  
+    display: flex; /* centrer verticalement le texte */
+    align-items: center; /* centrer verticalement les éléments a dans leur conteneur */
+    width: 85px;
+    height: 40px;  
 }
 
 .search-input, .search-input_2, .search-input_3 {
@@ -209,6 +202,15 @@ body {
     outline: none;
     background: #3282F7;
     color: white;
+    border-radius: 4px;
+}
+
+.search-input:hover, .search-input_2:hover, .search-input_3:hover {
+    border-radius: 4px 4px 0 0;
+}
+
+.dropdown-content:hover, .search-input, .search-input_2, .search-input_3 {
+    border-radius: 4px 4px 0 0;
 }
 
 .search-input_2 {
@@ -293,4 +295,14 @@ body {
     justify-content: end;
     align-items: center;
     width: 50%;
+}
+
+#alerte-zero {
+    display: none;
+    text-align: left;
+    margin-top: 130px;
+    height: 100px;
+    font-size: 35px;
+    justify-content: space-evenly;
+    align-items: center;
 }

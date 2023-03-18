@@ -5,10 +5,10 @@ let index = 0;
 let filter;
 let idTabs = [];
 let selectedItems = {
-    searchInput : "",
-    ingredientTags : [],
-    applianceTags : [],
-    ustensilsTags : []
+    searchInput: "",
+    ingredientTags: [],
+    applianceTags: [],
+    ustensilsTags: []
 };
 
 async function init() {
@@ -43,6 +43,9 @@ function getIngredients() {
         link.classList.add("item-dropdown");
         link.textContent = ingredientsArray;
         link.setAttribute("index", index);
+        if (link.text.length > 30) {
+            link.style.fontSize = "12px"
+        }
         index++;
         dropdownDiv[0].appendChild(link);
 
@@ -68,6 +71,10 @@ function getIngredients() {
             selectedListItemImage.setAttribute("class", "checked");
             selectedListItemImage.setAttribute("alt", "checked");
             selectedListItemImage.setAttribute("index", getIndex);
+
+            if (selectedListItemText.textContent.length > 30) {
+                selectedListItemText.style.fontSize = "11px"
+            }
 
             selectedListItem.appendChild(selectedListItemText);
             selectedListItem.appendChild(selectedListItemImage);
@@ -201,13 +208,13 @@ function dropdown() {
         searchInput.addEventListener("mouseover", svgRotate);
 
         function searchInputDropdown(event) {
-            const filter = event.currentTarget.value.toLowerCase();
+            const filter = normalizeText(event.currentTarget.value.toLowerCase());
             const dropdownLinks = event.currentTarget.closest(".dropdown").querySelectorAll(".dropdown-content a");
 
             dropdownLinks.forEach(function (dropdownLink) {
 
 
-                if (dropdownLink.innerHTML.toLowerCase().includes(filter)) {
+                if (normalizeText(dropdownLink.innerHTML).includes(filter)) {
 
                     dropdownLink.style.display = "block";
                 } else {
@@ -316,17 +323,6 @@ function triBarreRecherche() {
 
 
 
-//j'ai la recherche fusionnée sur la même fonction, je supprime le input barre de la fonction et en fait une autre ?
-
-
-//ê = e, ç = c, normalizeText à modifier, meme glacon ne va pas dans la barre de recherche ca affiche 4 resultats
-//width height du dropdown si y a qu'un element ou peu, le réduire
-
-//pourquoi ca ne supprime pas le lien avec la ligne 482 ?
-//écrire  "Aucune recette ne correspond à votre critère… vous pouvez chercher « tarte aux pommes », « poisson », etc."
-
-
-
 
 
 //cherche par rapport à la var selectedItems
@@ -347,7 +343,7 @@ function globalSearch() {
         selectedItems.applianceTags.forEach(applianceTag => {
             if (selectedItems.applianceTags.length > 0 && !normalizeText(recipe.appliance).includes(normalizeText(applianceTag))) {
                 isMatch = false;
-            } 
+            }
         })
 
 
@@ -359,26 +355,42 @@ function globalSearch() {
         })
 
         //logique de recherche dans le champ de recherche
-        if (selectedItems.searchInput !== "") {
-            isMatch = false;
-            const searchInput = normalizeText(selectedItems.searchInput);
-            const recipeName = normalizeText(recipe.name);
-            const recipeDescription = normalizeText(recipe.description);
-          
-            for (let i = 0; i < recipe.ingredients.length; i++) {
-              const ingredientName = normalizeText(recipe.ingredients[i].ingredient);
-          
-              if (recipeName.includes(searchInput) ||
-                  ingredientName.includes(searchInput) ||
-                  recipeDescription.split(" ").some(word => normalizeText(word).includes(searchInput))) {
+        const searchInput = normalizeText(selectedItems.searchInput);
+        const recipeName = normalizeText(recipe.name);
+        const recipeIngredients = recipe.ingredients.map(ingredient => normalizeText(ingredient.ingredient)).join(" ");
+        const recipeDescription = normalizeText(recipe.description);
+        const recipeUstensils = recipe.ustensils.map(ustensil => normalizeText(ustensil));
+      
+        isMatch = false;
+      
+        if (searchInput !== "") {
+          const searchWords = searchInput.split(" ");
+      
+          for (let i = 0; i < searchWords.length; i++) {
+            const searchWord = normalizeText(searchWords[i]);
+      
+            if (recipeName.indexOf(searchWord) !== -1
+                || recipeIngredients.indexOf(searchWord) !== -1
+                || recipeDescription.indexOf(searchWord) !== -1) {
+              isMatch = true;
+            }
+      
+            for (let j = 0; j < recipeUstensils.length; j++) {
+              if (normalizeText(recipeUstensils[j]).indexOf(searchWord) !== -1) {
                 isMatch = true;
+                break;
               }
             }
-          
-            if (!isMatch) {
-              isMatch = false;
+      
+            if (isMatch) {
+              break;
             }
+          }
+        } else {
+          isMatch = true;
         }
+      
+
 
         //si match, ajoute au tableau
         if (isMatch) {
@@ -393,7 +405,7 @@ function globalSearch() {
     updateDropdownIngredients();
     updateDropdownAppareils();
     updateDropdownUstensiles();
-
+    affichageSentenceWithoutRecipe();
 }
 
 //au clic de la cross ca rajoute le a dans le dropdown concerné
@@ -411,12 +423,12 @@ function deleteElement() {
             let clickedItem = event.currentTarget.closest("li").textContent;
 
             for (let i in selectedItems) {
-              if (Array.isArray(selectedItems[i])) {
-                let index = selectedItems[i].indexOf(clickedItem);
-                if (index !== -1) {
-                  selectedItems[i].splice(index, 1);
+                if (Array.isArray(selectedItems[i])) {
+                    let index = selectedItems[i].indexOf(clickedItem);
+                    if (index !== -1) {
+                        selectedItems[i].splice(index, 1);
+                    }
                 }
-              }
             }
             globalSearch();
         });
@@ -425,13 +437,11 @@ function deleteElement() {
 
 //rotate le svg
 function svgRotate(event) {
-
     if (event.currentTarget.nextElementSibling.style.transform === "rotate(0turn)") {
         event.currentTarget.nextElementSibling.style.transform = "rotate(0.5turn)";
     } else {
         event.currentTarget.nextElementSibling.style.transform = "rotate(0turn)";
     }
-
 }
 
 //applatit le texte
@@ -483,46 +493,54 @@ function updateDropdownIngredients() {
     dropdownDiv[0].innerHTML = "";
 
     ingredientsArrays.forEach(ingredientsArray => {
-        let link = document.createElement("a");
+        if (!selectedItems.ingredientTags.includes(ingredientsArray)) {
+            let link = document.createElement("a");
 
-        link.setAttribute("href", "#");
-        link.setAttribute("class", "ingredient");
-        link.classList.add("item-dropdown");
-        link.textContent = ingredientsArray;
-        link.setAttribute("index", index);
-        index++;
-        dropdownDiv[0].appendChild(link);
+            link.setAttribute("href", "#");
+            link.setAttribute("class", "ingredient");
+            link.classList.add("item-dropdown");
+            link.textContent = ingredientsArray;
+            link.setAttribute("index", index);
+            if (link.text.length > 30) {
+                link.style.fontSize = "12px"
+            }
+            index++;
+            dropdownDiv[0].appendChild(link);
+    
+            link.addEventListener("click", (event) => {
+                resetSearchInputNoBar();
+                event.preventDefault();
+                selectedItems.ingredientTags.push(event.target.textContent);
 
-        link.addEventListener("click", (event) => {
-            resetSearchInputNoBar();
-            event.preventDefault();
-            selectedItems.ingredientTags.push(event.target.textContent);
+                let getIndex = event.currentTarget.getAttribute("index");
+    
+                const selectedIngredient = event.target.textContent;
+                const selectedListItem = document.createElement("li");
+                selectedListItem.setAttribute("class", "selected");
+    
+                const selectedListItemText = document.createElement("p");
+                selectedListItemText.setAttribute("class", "textEmpty");
+                selectedListItemText.textContent = selectedIngredient;
+    
+                const selectedListItemImage = document.createElement("img");
+                selectedListItemImage.setAttribute("src", "medias/Checked.png");
+                selectedListItemImage.setAttribute("class", "checked");
+                selectedListItemImage.setAttribute("alt", "checked");
+                selectedListItemImage.setAttribute("index", getIndex);
 
-            event.currentTarget.style.display = "none";
-            let getIndex = event.currentTarget.getAttribute("index");
-
-            const selectedIngredient = event.target.textContent;
-            const selectedListItem = document.createElement("li");
-            selectedListItem.setAttribute("class", "selected");
-
-            const selectedListItemText = document.createElement("p");
-            selectedListItemText.setAttribute("class", "textEmpty");
-            selectedListItemText.textContent = selectedIngredient;
-
-            const selectedListItemImage = document.createElement("img");
-            selectedListItemImage.setAttribute("src", "medias/Checked.png");
-            selectedListItemImage.setAttribute("class", "checked");
-            selectedListItemImage.setAttribute("alt", "checked");
-            selectedListItemImage.setAttribute("index", getIndex);
-
-            selectedListItem.appendChild(selectedListItemText);
-            selectedListItem.appendChild(selectedListItemImage);
-            document.getElementById("selectedRecipeItem").appendChild(selectedListItem);
-            //deleteElement sinon cross ne marche pas
-            deleteElement(event);
-            //permet de trier la recette selon le selectionné
-            globalSearch();
-        })
+                if (selectedListItemText.textContent.length > 30) {
+                    selectedListItemText.style.fontSize = "11px"
+                }
+    
+                selectedListItem.appendChild(selectedListItemText);
+                selectedListItem.appendChild(selectedListItemImage);
+                document.getElementById("selectedRecipeItem").appendChild(selectedListItem);
+                //deleteElement sinon cross ne marche pas
+                deleteElement(event);
+                //permet de trier la recette selon le selectionné
+                globalSearch();
+            })
+        }
     })
 }
 
@@ -546,46 +564,47 @@ function updateDropdownAppareils() {
     dropdownDiv[1].innerHTML = "";
 
     appareilsArrays.forEach(appareilsArray => {
-        let link = document.createElement("a");
-        link.setAttribute("href", "#");
-        link.setAttribute("class", "appareil");
-        link.classList.add("item-dropdown");
-        link.textContent = appareilsArray;
-        link.setAttribute("index", index);
-        index++;
-        dropdownDiv[1].appendChild(link);
-
-        link.addEventListener("click", (event) => {
-            resetSearchInputNoBar();
-            event.preventDefault();
-            event.currentTarget.style.display = "none";
-            let getIndex = event.currentTarget.getAttribute("index");
-            selectedItems.applianceTags.push(event.target.textContent);
-
-
-            const selectedAppareils = event.target.textContent;
-            const selectedListItem = document.createElement("li");
-            selectedListItem.setAttribute("class", "selected_2");
-            selectedListItem.classList.add("selected");
-
-            const selectedListItemText = document.createElement("p");
-            selectedListItemText.setAttribute("class", "textEmpty");
-            selectedListItemText.textContent = selectedAppareils;
-
-            const selectedListItemImage = document.createElement("img");
-            selectedListItemImage.setAttribute("src", "medias/Checked.png");
-            selectedListItemImage.setAttribute("class", "checked");
-            selectedListItemImage.setAttribute("alt", "checked");
-            selectedListItemImage.setAttribute("index", getIndex);
-
-            selectedListItem.appendChild(selectedListItemText);
-            selectedListItem.appendChild(selectedListItemImage);
-            document.getElementById("selectedRecipeItem").appendChild(selectedListItem);
-            //deleteElement sinon cross ne marche pas
-            deleteElement(event);
-            //permet de trier la recette selon le selectionné
-            globalSearch();
-        })
+        if (!selectedItems.applianceTags.includes(appareilsArray)) {
+            let link = document.createElement("a");
+            link.setAttribute("href", "#");
+            link.setAttribute("class", "appareil");
+            link.classList.add("item-dropdown");
+            link.textContent = appareilsArray;
+            link.setAttribute("index", index);
+            index++;
+            dropdownDiv[1].appendChild(link);
+    
+            link.addEventListener("click", (event) => {
+                resetSearchInputNoBar();
+                event.preventDefault();
+                let getIndex = event.currentTarget.getAttribute("index");
+                selectedItems.applianceTags.push(event.target.textContent);
+    
+    
+                const selectedAppareils = event.target.textContent;
+                const selectedListItem = document.createElement("li");
+                selectedListItem.setAttribute("class", "selected_2");
+                selectedListItem.classList.add("selected");
+    
+                const selectedListItemText = document.createElement("p");
+                selectedListItemText.setAttribute("class", "textEmpty");
+                selectedListItemText.textContent = selectedAppareils;
+    
+                const selectedListItemImage = document.createElement("img");
+                selectedListItemImage.setAttribute("src", "medias/Checked.png");
+                selectedListItemImage.setAttribute("class", "checked");
+                selectedListItemImage.setAttribute("alt", "checked");
+                selectedListItemImage.setAttribute("index", getIndex);
+    
+                selectedListItem.appendChild(selectedListItemText);
+                selectedListItem.appendChild(selectedListItemImage);
+                document.getElementById("selectedRecipeItem").appendChild(selectedListItem);
+                //deleteElement sinon cross ne marche pas
+                deleteElement(event);
+                //permet de trier la recette selon le selectionné
+                globalSearch();
+            })
+        }
     })
 }
 
@@ -611,45 +630,66 @@ function updateDropdownUstensiles() {
     dropdownDiv[2].innerHTML = "";
 
     ustensilsArrays.forEach(ustensilesArray => {
-        let link = document.createElement("a");
-        link.setAttribute("href", "#");
-        link.setAttribute("class", "ustensile");
-        link.classList.add("item-dropdown");
-        link.textContent = ustensilesArray;
-        link.setAttribute("index", index);
-        index++;
-        dropdownDiv[2].appendChild(link);
-
-        link.addEventListener("click", (event) => {
-            resetSearchInputNoBar();
-            event.preventDefault();
-            event.currentTarget.style.display = "none";
-            let getIndex = event.currentTarget.getAttribute("index");
-            selectedItems.ustensilsTags.push(event.target.textContent);
-
-
-            const selectedUstensils = event.target.textContent;
-            const selectedListItem = document.createElement("li");
-            selectedListItem.setAttribute("class", "selected_3");
-            selectedListItem.classList.add("selected");
-
-            const selectedListItemText = document.createElement("p");
-            selectedListItemText.setAttribute("class", "textEmpty");
-            selectedListItemText.textContent = selectedUstensils;
-
-            const selectedListItemImage = document.createElement("img");
-            selectedListItemImage.setAttribute("src", "medias/Checked.png");
-            selectedListItemImage.setAttribute("class", "checked");
-            selectedListItemImage.setAttribute("alt", "checked");
-            selectedListItemImage.setAttribute("index", getIndex);
-
-            selectedListItem.appendChild(selectedListItemText);
-            selectedListItem.appendChild(selectedListItemImage);
-            document.getElementById("selectedRecipeItem").appendChild(selectedListItem);
-            //deleteElement sinon cross ne marche pas
-            deleteElement(event);
-            //permet de trier la recette selon le selectionné
-            globalSearch();
-        })
+        if (!selectedItems.ustensilsTags.includes(ustensilesArray)) {
+            let link = document.createElement("a");
+            link.setAttribute("href", "#");
+            link.setAttribute("class", "ustensile");
+            link.classList.add("item-dropdown");
+            link.textContent = ustensilesArray;
+            link.setAttribute("index", index);
+            index++;
+            dropdownDiv[2].appendChild(link);
+    
+            link.addEventListener("click", (event) => {
+                resetSearchInputNoBar();
+                event.preventDefault();
+                event.currentTarget.style.display = "none";
+                let getIndex = event.currentTarget.getAttribute("index");
+                selectedItems.ustensilsTags.push(event.target.textContent);
+    
+    
+                const selectedUstensils = event.target.textContent;
+                const selectedListItem = document.createElement("li");
+                selectedListItem.setAttribute("class", "selected_3");
+                selectedListItem.classList.add("selected");
+    
+                const selectedListItemText = document.createElement("p");
+                selectedListItemText.setAttribute("class", "textEmpty");
+                selectedListItemText.textContent = selectedUstensils;
+    
+                const selectedListItemImage = document.createElement("img");
+                selectedListItemImage.setAttribute("src", "medias/Checked.png");
+                selectedListItemImage.setAttribute("class", "checked");
+                selectedListItemImage.setAttribute("alt", "checked");
+                selectedListItemImage.setAttribute("index", getIndex);
+    
+                selectedListItem.appendChild(selectedListItemText);
+                selectedListItem.appendChild(selectedListItemImage);
+                document.getElementById("selectedRecipeItem").appendChild(selectedListItem);
+                //deleteElement sinon cross ne marche pas
+                deleteElement(event);
+                //permet de trier la recette selon le selectionné
+                globalSearch();
+            })
+        }
     })
-} 
+}
+
+//phrase en cas d'échec de recherche
+function affichageSentenceWithoutRecipe() {
+    const sentence = document.getElementById("alerte-zero");
+    const recipes = document.querySelectorAll('.recipeUnity');
+  
+    let isAnyRecipeDisplayed = false;
+    for (const recipe of recipes) {
+      if (recipe.style.display !== "none") {
+        isAnyRecipeDisplayed = true;
+      }
+    }
+  
+    if (!isAnyRecipeDisplayed) {
+      sentence.style.display = "flex";
+    } else {
+      sentence.style.display = "none";
+    }
+}

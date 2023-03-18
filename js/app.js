@@ -378,7 +378,6 @@ function globalSearch() {
             for (let j = 0; j < recipeUstensils.length; j++) {
               if (normalizeText(recipeUstensils[j]).indexOf(searchWord) !== -1) {
                 isMatch = true;
-                break;
               }
             }
       

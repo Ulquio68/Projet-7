@@ -346,7 +346,6 @@ function globalSearch() {
             }
         })
 
-
         //logique de recherche dans les ustensiles
         selectedItems.ustensilsTags.forEach(tag => {
             if (!recipe.ustensils.some(ustensil => normalizeText(ustensil).includes(normalizeText(tag)))) {
@@ -354,47 +353,45 @@ function globalSearch() {
             }
         })
 
-// logique de recherche dans le champ de recherche
-if (selectedItems.searchInput !== "") {
-    const searchWords = selectedItems.searchInput.split(" ");
-    const recipeName = normalizeText(recipe.name);
-    const recipeIngredients = recipe.ingredients.map(ingredient => normalizeText(ingredient.ingredient)).join(" ");
-    const recipeDescription = normalizeText(recipe.description);
-    const recipeUstensils = recipe.ustensils.map(ustensil => normalizeText(ustensil));
+        // logique de recherche dans le champ de recherche
+        if (selectedItems.searchInput !== "") {
+            const searchWords = selectedItems.searchInput.split(" ");
+            const recipeName = normalizeText(recipe.name);
+            const recipeIngredients = recipe.ingredients.map(ingredient => normalizeText(ingredient.ingredient)).join(" ");
+            const recipeDescription = normalizeText(recipe.description);
+            const recipeUstensils = recipe.ustensils.map(ustensil => normalizeText(ustensil));
 
-    let foundSearchWords = 0;
-    let searchWordsLength = searchWords.length;
+            let foundSearchWords = 0;
+            let searchWordsLength = searchWords.length;
 
-    for (let i = 0; i < searchWordsLength; i++) {
-        let searchWord = normalizeText(searchWords[i]);
-        if (recipeName.indexOf(searchWord) !== -1) {
-            foundSearchWords++;
-        } else {
-            let recipeIngredientsWords = recipeIngredients.split(" ");
-            let recipeIngredientsWordsLength = recipeIngredientsWords.length;
-            for (let j = 0; j < recipeIngredientsWordsLength; j++) {
-                if (recipeIngredientsWords[j].indexOf(searchWord) !== -1) {
+            for (let i = 0; i < searchWordsLength; i++) {
+                let searchWord = normalizeText(searchWords[i]);
+                if (recipeName.indexOf(searchWord) !== -1) {
                     foundSearchWords++;
-                    break;
+                } else {
+                    let recipeIngredientsWords = recipeIngredients.split(" ");
+                    let recipeIngredientsWordsLength = recipeIngredientsWords.length;
+                    for (let j = 0; j < recipeIngredientsWordsLength; j++) {
+                        if (recipeIngredientsWords[j].indexOf(searchWord) !== -1) {
+                            foundSearchWords++;
+                        }
+                    }
+                    if (recipeDescription.indexOf(searchWord) !== -1) {
+                        foundSearchWords++;
+                    }
+                    let recipeUstensilsLength = recipeUstensils.length;
+                    for (let k = 0; k < recipeUstensilsLength; k++) {
+                        if (recipeUstensils[k].indexOf(searchWord) !== -1) {
+                            foundSearchWords++;
+                        }
+                    }
                 }
             }
-            if (recipeDescription.indexOf(searchWord) !== -1) {
-                foundSearchWords++;
-            }
-            let recipeUstensilsLength = recipeUstensils.length;
-            for (let k = 0; k < recipeUstensilsLength; k++) {
-                if (recipeUstensils[k].indexOf(searchWord) !== -1) {
-                    foundSearchWords++;
-                    break;
-                }
+
+            if (foundSearchWords === 0) {
+                isMatch = false;
             }
         }
-    }
-
-    if (foundSearchWords === 0) {
-        isMatch = false;
-    }
-}
 
         //si match, ajoute au tableau
         if (isMatch) {

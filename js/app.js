@@ -648,6 +648,7 @@ function updateDropdownUstensiles() {
     })
 }
 
+//affiche la phrase si y a zéro recettes trouvées
 function affichageSentenceWithoutRecipe() {
     const sentence = document.getElementById("alerte-zero");
     const recipes = document.querySelectorAll('.recipeUnity');
@@ -664,4 +665,4 @@ function affichageSentenceWithoutRecipe() {
     } else {
       sentence.style.display = "none";
     }
-  }
+}

@@ -142,6 +142,7 @@ body {
 
 .color-second {
     background: #68D9A4;
+    justify-content: center;
 }
 
 .color-third {
@@ -166,19 +167,18 @@ body {
 .dropdown:hover .dropdown-content {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-evenly;
-
     max-height: 300px;
     width: 319px;
     left: -0.9px;
     border-radius: 0 0 10px 10px;
     font-size: 14px;
+    justify-content: center;
 }
 
 .dropdown-content a {
-    padding: 6px 0;
+    padding: 6px 8px;
     text-decoration: none;
-    width: 85px;
+    width: 80px;
     height: 40px;
     display: flex; /* centrer verticalement le texte */
     align-items: center; /* centrer verticalement les éléments a dans leur conteneur */

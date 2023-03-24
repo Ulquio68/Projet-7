@@ -221,7 +221,7 @@ function dropdown() {
                     dropdownLink.style.display = "none";
                 }
             });
-        };
+        }
     });
 }
 
@@ -416,8 +416,6 @@ function deleteElement() {
     crossCloses.forEach(crossClose => {
         crossClose.addEventListener("click", (event) => {
             event.currentTarget.closest("li").style.display = "none";
-            const index = crossClose.getAttribute('index');
-            const target = document.querySelector(`.item-dropdown[index="${index}"]`);
             event.currentTarget.style.display = 'block';
             //ici j'ai modif target par event.currentTarget si jamais faut reset
 

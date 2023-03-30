@@ -363,6 +363,7 @@ function globalSearch() {
         )) {
             isMatch = false;
         }
+    })
 
     allSelectRecipes.forEach(recipe => {
         recipe.style.display = idTabs.includes(parseInt(recipe.id)) ? "block" : "none";

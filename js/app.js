@@ -221,7 +221,7 @@ function dropdown() {
                     dropdownLink.style.display = "none";
                 }
             });
-        };
+        }
     });
 }
 
@@ -346,7 +346,6 @@ function globalSearch() {
             }
         })
 
-
         //logique de recherche dans les ustensiles
         selectedItems.ustensilsTags.forEach(tag => {
             if (!recipe.ustensils.some(ustensil => normalizeText(ustensil).includes(normalizeText(tag)))) {
@@ -354,15 +353,44 @@ function globalSearch() {
             }
         })
 
-        //logique de recherche dans le champ de recherche
-        if (selectedItems.searchInput !== "" && !(
-            normalizeText(recipe.name).includes(normalizeText(selectedItems.searchInput))
-            || recipe.ingredients.some(ingredient => normalizeText(ingredient.ingredient).includes(normalizeText(selectedItems.searchInput)))
-            || normalizeText(recipe.name).includes(normalizeText(selectedItems.searchInput))
-            || recipe.description.split(" ").some(ustensil => normalizeText(ustensil).includes(normalizeText(selectedItems.searchInput)))
-            //some = pour array
-        )) {
-            isMatch = false;
+        // logique de recherche dans le champ de recherche
+        if (selectedItems.searchInput !== "") {
+            const searchWords = selectedItems.searchInput.split(" ");
+            const recipeName = normalizeText(recipe.name);
+            const recipeIngredients = recipe.ingredients.map(ingredient => normalizeText(ingredient.ingredient)).join(" ");
+            const recipeDescription = normalizeText(recipe.description);
+            const recipeUstensils = recipe.ustensils.map(ustensil => normalizeText(ustensil));
+
+            let foundSearchWords = 0;
+            let searchWordsLength = searchWords.length;
+
+            for (let i = 0; i < searchWordsLength; i++) {
+                let searchWord = normalizeText(searchWords[i]);
+                if (recipeName.indexOf(searchWord) !== -1) {
+                    foundSearchWords++;
+                } else {
+                    let recipeIngredientsWords = recipeIngredients.split(" ");
+                    let recipeIngredientsWordsLength = recipeIngredientsWords.length;
+                    for (let j = 0; j < recipeIngredientsWordsLength; j++) {
+                        if (recipeIngredientsWords[j].indexOf(searchWord) !== -1) {
+                            foundSearchWords++;
+                        }
+                    }
+                    if (recipeDescription.indexOf(searchWord) !== -1) {
+                        foundSearchWords++;
+                    }
+                    let recipeUstensilsLength = recipeUstensils.length;
+                    for (let k = 0; k < recipeUstensilsLength; k++) {
+                        if (recipeUstensils[k].indexOf(searchWord) !== -1) {
+                            foundSearchWords++;
+                        }
+                    }
+                }
+            }
+
+            if (foundSearchWords === 0) {
+                isMatch = false;
+            }
         }
 
         //si match, ajoute au tableau
@@ -388,8 +416,6 @@ function deleteElement() {
     crossCloses.forEach(crossClose => {
         crossClose.addEventListener("click", (event) => {
             event.currentTarget.closest("li").style.display = "none";
-            const index = crossClose.getAttribute('index');
-            const target = document.querySelector(`.item-dropdown[index="${index}"]`);
             event.currentTarget.style.display = 'block';
             //ici j'ai modif target par event.currentTarget si jamais faut reset
 

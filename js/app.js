@@ -18,7 +18,7 @@ async function init() {
     dropdown();
     eachRecipe();
     triBarreRecherche();
-    window.addEventListener("load", resetSearchInput);
+    window.addEventListener("load", resetSearchInput());
 }
 init();
 
